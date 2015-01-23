@@ -11,15 +11,20 @@
 		var screen = document.getElementById("screen");
 		var context = screen.getContext("2d");
 
-		var textInput = document.getElementById("text-input");
-
-		textInput.onkeyup = function () {
+		document.getElementById("text-input").onkeyup = function () {
 			context.clearRect(0, 0, screen.height, screen.width);
 
-			var text = textInput.value;
-
+			var text = this.value.toLowerCase();
+			var x = 50, y = 180;
 			for(var i = 0; i < text.length; i++) {
-				drawImage(context, "img/" + text[i] + ".png", 30*i, 0);
+				var charCode = text.charCodeAt(i);
+				if (charCode in coords) {
+					drawImage(context, "img/" + text[i] + ".png", 
+						x - coords[charCode].start.x,
+						y - coords[charCode].start.y);
+					x += coords[charCode].end.x - coords[charCode].start.x;
+					y += coords[charCode].end.y - coords[charCode].start.y;
+				}
 			}
 		};
 
@@ -27,8 +32,39 @@
 			var img = new Image();
 			img.src = src;
 			img.onload = function () {
-				context.drawImage(img, x, y, 30, 30);
+				context.drawImage(this, x, y);
 			};
+		};
+
+		var coords = {
+			97:  {start: {x: 11, y: 32}, end: {x: 49,  y: 18}}, // a
+			98:  {start: {x: 27, y: 6 }, end: {x: 8,   y: 40}}, // b
+			99:  {start: {x: 18, y: 7 }, end: {x: 21,  y: 43}}, // c
+			100: {start: {x: 9,  y: 12}, end: {x: 7,   y: 40}}, // d
+			101: {start: {x: 10, y: 40}, end: {x: 30,  y: 7}},  // e
+			102: {start: {x: 43, y: 7 }, end: {x: 24,  y: 35}}, // f
+			103: {start: {x: 18, y: 29}, end: {x: 25,  y: 41}}, // g
+			104: {start: {x: 47, y: 8 }, end: {x: 33,  y: 28}}, // h
+			105: {start: {x: 6,  y: 34}, end: {x: 135, y: 7}},  // i
+			106: {start: {x: 36, y: 17}, end: {x: 40,  y: 30}}, // j
+			107: {start: {x: 18, y: 27}, end: {x: 9,   y: 44}}, // k
+			108: {start: {x: 16, y: 28}, end: {x: 23,  y: 30}}, // l
+			109: {start: {x: 10, y: 11}, end: {x: 29,  y: 32}}, // m
+			110: {start: {x: 13, y: 10}, end: {x: 20,  y: 13}}, // n
+			111: {start: {x: 6,  y: 9},  end: {x: 44,  y: 10}}, // o
+			112: {start: {x: 49, y: 6},  end: {x: 7,   y: 41}}, // p
+			113: {start: {x: 15, y: 30}, end: {x: 12,  y: 43}}, // q
+			114: {start: {x: 19, y: 15}, end: {x: 27,  y: 15}}, // r
+			115: {start: {x: 21, y: 12}, end: {x: 26,  y: 13}}, // s
+			116: {start: {x: 6,  y: 11}, end: {x: 24,  y: 25}}, // t
+			117: {start: {x: 6,  y: 17}, end: {x: 57,  y: 7}},  // u
+			118: {start: {x: 27, y: 7},  end: {x: 26,  y: 37}}, // v 
+			119: {start: {x: 27, y: 7},  end: {x: 26,  y: 37}}, // w
+			121: {start: {x: 9,  y: 17}, end: {x: 172, y: 6}},  // y
+			122: {start: {x: 36, y: 12}, end: {x: 59,  y: 32}}, // z
+			229: {start: {x: 6,  y: 6},  end: {x: 169, y: 11}}, // å
+			228: {start: {x: 7,  y: 72}, end: {x: 47,  y: 4}},  // ä
+			246: {start: {x: 7,  y: 41}, end: {x: 80,  y: 6}}   // ö
 		};
 	})()
 	</script>
