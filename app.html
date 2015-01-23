@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+
+<body>
+
+	<textarea id="text-input"></textarea>
+	<canvas id="screen" width="400" height="400" style="border: 1px solid black;">
+
+	<script type="text/javascript">
+	(function () {
+		var screen = document.getElementById("screen");
+		var context = screen.getContext("2d");
+
+		var textInput = document.getElementById("text-input");
+
+		textInput.onkeyup = function () {
+			context.clearRect(0, 0, screen.height, screen.width);
+
+			var text = textInput.value;
+
+			for(var i = 0; i < text.length; i++) {
+				drawImage(context, "img/" + text[i] + ".png", 30*i, 0);
+			}
+		};
+
+		var drawImage = function (context, src, x, y) {
+			var img = new Image();
+			img.src = src;
+			img.onload = function () {
+				context.drawImage(img, x, y, 30, 30);
+			};
+		};
+	})()
+	</script>
+</body>
+</html>
