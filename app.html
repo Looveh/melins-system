@@ -4,69 +4,88 @@
 <body>
 
 	<textarea id="text-input"></textarea>
-	<canvas id="screen" width="400" height="400" style="border: 1px solid black;">
+	<canvas id="canvas" width="400" height="400" style="border: 1px solid black;">
 
 	<script type="text/javascript">
 	(function () {
-		var screen = document.getElementById("screen");
-		var context = screen.getContext("2d");
+		(function () {
+			var canvas = document.getElementById("canvas");
+			var textInput = document.getElementById("text-input");
+			
+			textInput.onkeyup = function () {
+				update(canvas, textInput.value);
+			};
+		})();
 
-		document.getElementById("text-input").onkeyup = function () {
-			context.clearRect(0, 0, screen.height, screen.width);
+		var update = function (canvas, text) {
+			context = canvas.getContext("2d");
+			context.clearRect(0, 0, canvas.height, canvas.width);
 
-			var text = this.value.toLowerCase();
-			var x = 50, y = 180;
-			for(var i = 0; i < text.length; i++) {
-				var charCode = text.charCodeAt(i);
-				if (charCode in coords) {
-					drawImage(context, "img/" + text[i] + ".png", 
-						x - coords[charCode].start.x,
-						y - coords[charCode].start.y);
-					x += coords[charCode].end.x - coords[charCode].start.x;
-					y += coords[charCode].end.y - coords[charCode].start.y;
-				}
-			}
+			var words = text.toLowerCase().trim().split(" ");
+
+			words.map(function (word) {
+				return word.split(""); // string to array
+			}).reduce(function (pos, word) {
+				var endPoint = drawWord(context, word, pos.x, pos.y);
+				return {
+					x: pos.x + (endPoint.x - pos.x) + 60,
+					y: pos.y
+				};
+			}, {x: 50, y: 180});
 		};
 
-		var drawImage = function (context, src, x, y) {
+		var drawWord = function(context, word, x, y) {
+			return word.filter(function (sign) {
+				return sign in coords;
+			}).reduce(function (pos, sign) {
+				pos.x -= coords[sign].start.x;
+				pos.y -= coords[sign].start.y;
+				drawSign(context, sign, pos.x, pos.y);
+				return {
+					x: pos.x + coords[sign].end.x,
+					y: pos.y + coords[sign].end.y
+				};
+			}, {x: x, y: y});
+		};
+
+		var drawSign = function (context, sign, x, y) {
 			var img = new Image();
-			img.src = src;
+			img.src = "img/" + sign + ".png";
 			img.onload = function () {
 				context.drawImage(this, x, y);
 			};
 		};
 
-		var coords = {
-			97:  {start: {x: 11, y: 32}, end: {x: 49,  y: 18}}, // a
-			98:  {start: {x: 27, y: 6 }, end: {x: 8,   y: 40}}, // b
-			99:  {start: {x: 18, y: 7 }, end: {x: 21,  y: 43}}, // c
-			100: {start: {x: 9,  y: 12}, end: {x: 7,   y: 40}}, // d
-			101: {start: {x: 10, y: 40}, end: {x: 30,  y: 7}},  // e
-			102: {start: {x: 43, y: 7 }, end: {x: 24,  y: 35}}, // f
-			103: {start: {x: 18, y: 29}, end: {x: 25,  y: 41}}, // g
-			104: {start: {x: 47, y: 8 }, end: {x: 33,  y: 28}}, // h
-			105: {start: {x: 6,  y: 34}, end: {x: 135, y: 7}},  // i
-			106: {start: {x: 36, y: 17}, end: {x: 40,  y: 30}}, // j
-			107: {start: {x: 18, y: 27}, end: {x: 9,   y: 44}}, // k
-			108: {start: {x: 16, y: 28}, end: {x: 23,  y: 30}}, // l
-			109: {start: {x: 10, y: 11}, end: {x: 29,  y: 32}}, // m
-			110: {start: {x: 13, y: 10}, end: {x: 20,  y: 13}}, // n
-			111: {start: {x: 6,  y: 9},  end: {x: 44,  y: 10}}, // o
-			112: {start: {x: 49, y: 6},  end: {x: 7,   y: 41}}, // p
-			113: {start: {x: 15, y: 30}, end: {x: 12,  y: 43}}, // q
-			114: {start: {x: 19, y: 15}, end: {x: 27,  y: 15}}, // r
-			115: {start: {x: 21, y: 12}, end: {x: 26,  y: 13}}, // s
-			116: {start: {x: 6,  y: 11}, end: {x: 24,  y: 25}}, // t
-			117: {start: {x: 6,  y: 17}, end: {x: 57,  y: 7}},  // u
-			118: {start: {x: 27, y: 7},  end: {x: 26,  y: 37}}, // v 
-			119: {start: {x: 27, y: 7},  end: {x: 26,  y: 37}}, // w
-			121: {start: {x: 9,  y: 17}, end: {x: 172, y: 6}},  // y
-			122: {start: {x: 36, y: 12}, end: {x: 59,  y: 32}}, // z
-			229: {start: {x: 6,  y: 6},  end: {x: 169, y: 11}}, // å
-			228: {start: {x: 7,  y: 72}, end: {x: 47,  y: 4}},  // ä
-			246: {start: {x: 7,  y: 41}, end: {x: 80,  y: 6}}   // ö
-		};
-	})()
+		var coords = {};
+		coords["a"] = {start: {x: 11, y: 32}, end: {x: 49,  y: 18}};
+		coords["b"] = {start: {x: 27, y: 6 }, end: {x: 8,   y: 40}};
+		coords["c"] = {start: {x: 18, y: 7 }, end: {x: 21,  y: 43}};
+		coords["d"] = {start: {x: 9,  y: 12}, end: {x: 7,   y: 40}}; 
+		coords["e"] = {start: {x: 10, y: 40}, end: {x: 30,  y: 7}};  
+		coords["f"] = {start: {x: 43, y: 7 }, end: {x: 24,  y: 35}}; 
+		coords["g"] = {start: {x: 18, y: 29}, end: {x: 25,  y: 41}}; 
+		coords["h"] = {start: {x: 47, y: 8 }, end: {x: 33,  y: 28}}; 
+		coords["i"] = {start: {x: 6,  y: 34}, end: {x: 135, y: 7}};  
+		coords["j"] = {start: {x: 36, y: 17}, end: {x: 40,  y: 30}}; 
+		coords["k"] = {start: {x: 18, y: 27}, end: {x: 9,   y: 44}}; 
+		coords["l"] = {start: {x: 16, y: 28}, end: {x: 23,  y: 30}}; 
+		coords["m"] = {start: {x: 10, y: 11}, end: {x: 29,  y: 32}}; 
+		coords["n"] = {start: {x: 13, y: 10}, end: {x: 20,  y: 13}}; 
+		coords["o"] = {start: {x: 6,  y: 9},  end: {x: 44,  y: 10}}; 
+		coords["p"] = {start: {x: 49, y: 6},  end: {x: 7,   y: 41}}; 
+		coords["q"] = {start: {x: 15, y: 30}, end: {x: 12,  y: 43}}; 
+		coords["r"] = {start: {x: 19, y: 15}, end: {x: 27,  y: 15}}; 
+		coords["s"] = {start: {x: 21, y: 12}, end: {x: 26,  y: 13}}; 
+		coords["t"] = {start: {x: 6,  y: 11}, end: {x: 24,  y: 25}}; 
+		coords["u"] = {start: {x: 6,  y: 17}, end: {x: 57,  y: 7}};  
+		coords["v"] = {start: {x: 27, y: 7},  end: {x: 26,  y: 37}};
+		coords["w"] = {start: {x: 27, y: 7},  end: {x: 26,  y: 37}};
+		coords["y"] = {start: {x: 9,  y: 17}, end: {x: 172, y: 6}}; 
+		coords["z"] = {start: {x: 36, y: 12}, end: {x: 59,  y: 32}};
+		coords[String.fromCharCode(229)] = {start: {x: 6,  y: 6},  end: {x: 169, y: 11}}; // å
+		coords[String.fromCharCode(228)] = {start: {x: 7,  y: 72}, end: {x: 47,  y: 4}};  // ä
+		coords[String.fromCharCode(246)] = {start: {x: 7,  y: 41}, end: {x: 80,  y: 6}};  // ö
+	})();
 	</script>
 </body>
 </html>
