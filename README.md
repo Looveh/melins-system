@@ -1,2 +1,19 @@
 # melins-system
-An app that renders regular text as stenographic signs, using [Melin's system](http://sv.wikipedia.org/wiki/Stenografi#Melins_system).
+
+FIXME
+
+## Prerequisites
+
+You will need [Leiningen][1] 2.0 or above installed.
+
+[1]: https://github.com/technomancy/leiningen
+
+## Running
+
+To start a web server for the application, run:
+
+    lein ring server
+
+## License
+
+Copyright © 2015 FIXME

@@ -1,2 +1,3 @@
 .DS_Store
-img-raw/
+*.iml
+*.log
