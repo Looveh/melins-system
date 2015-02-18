@@ -1,7 +1,6 @@
 (ns melins.core
-  (:require [jayq.core :refer [$] :as jq]
-            [clojure.string :refer [split]]
-            [melins.signs :refer [coords]]))
+  (:require[clojure.string :refer [split]]
+           [melins.signs :refer [coords]]))
 
 (defn nil-or [value default]
   (if (nil? value) default value))
@@ -15,9 +14,12 @@
 (defn word-width [word]
   (if (empty? word)
     0
-    (Math/abs (- (:x (last word)) (:x (first word))))))
+    (let [end-points (concat (map #(get-in coords [(:sign %) :start :x]) word)
+                             (map #(get-in coords [(:sign %) :end :x]) word))]
+      (- (reduce max end-points)
+         (reduce min end-points)))))
 
-(defn sign-map [word]
+(defn sign-set [word]
   (loop [mapped [] tokens word x 0 y 0]
     (if (empty? tokens)
       mapped
@@ -31,17 +33,13 @@
                (- (+ x end-x) start-x)
                (- (+ y end-y) start-y))))))
 
-(defn word-map [word]
-  (let [signs (sign-map word)]
-    {:x 0
-     :y 0
-     :signs signs
-     :width (word-width signs)}))
-
 (defn word-set [text]
-  (let [words (->words text)
-        word-maps (mapv word-map words)]
-    word-maps))
+  (mapv #(hash-map :x 0
+                   :y 0
+                   :signs %
+                   :width (word-width %))
+        (mapv sign-set (->words text))))
+
 
 (defn place-words [words dimensions]
   (let [{width :width height :height margin-x :margin-x margin-y :margin-y} dimensions]
@@ -58,44 +56,18 @@
                    (+ x (:width word) 60)
                    y)))))))
 
-;;; JS Specific
+(defn place-signs [words]
+  (map (fn [word]
+         (map (fn [sign-set]
+                (assoc sign-set
+                       :x (+ (:x sign-set) (:x word))
+                       :y (+ (:y sign-set) (:y word))))
+              (:signs word)))
+       words))
 
-(defn log [& args]
-  (.log js/console (apply str (interpose " "args))))
+(defn text->sign-set [text dimensions]
+  (let [words (word-set text)
+        placed-words (place-words words dimensions)
+        placed-signs (place-signs placed-words)]
+    (flatten placed-signs)))
 
-(defn draw-sign [context sign]
-  (let [img (js/Image.)
-        uri (str "img/" (:sign sign) ".png")]
-    (set! (.-src img) uri)
-    (set! (.-onload img)
-          (fn []
-            (.drawImage context img (:x sign) (:y sign))))))
-
-(defn draw-word [context word]
-  (doseq [sign (:signs word)] (draw-sign context (assoc sign
-                                                        :x (+ (:x sign)
-                                                              (:x word))
-                                                        :y (+ (:y sign)
-                                                              (:y word))))))
-
-(defn draw [canvas words]
-  (let [context (.getContext canvas "2d")]
-    (.clearRect context 0 0 (* 3 (.-width canvas)) (* 3 (.-height canvas)))
-    (doseq [word words] (draw-word context word))))
-
-(defn render [canvas text]
-  (let [dimensions {:width (.-width canvas)
-                    :height (.-height canvas)
-                    :margin-x 60
-                    :margin-y 120}
-        words (word-set text)
-        placed-words (place-words words dimensions)]
-    (draw canvas placed-words)))
-
-(defn init []
-  (jq/on ($ :#text-input)
-         [:keyup]
-         #(render (first ($ "#canvas"))
-                  (jq/val ($ :#text-input)))))
-
-(jq/document-ready init)
